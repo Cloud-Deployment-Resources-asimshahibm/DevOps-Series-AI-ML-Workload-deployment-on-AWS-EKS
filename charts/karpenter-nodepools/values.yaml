@@ -2,6 +2,12 @@ clusterName: ""            # aiml-<env>  (also the karpenter.sh/discovery tag va
 nodeRole: ""               # aiml-<env>-karpenter-node
 kmsKeyAlias: ""            # alias/aiml-<env>-platform  (EBS encryption)
 
+# Cost allocation tags on every EC2 instance + root volume Karpenter launches
+# (AWS Budgets / Cost Explorer filter on these — keep in sync with Terraform default_tags)
+costTags:
+  Project: aiml
+  Environment: dev
+
 # Pin an AMI version in prod (e.g. al2023@v20250116) so nodes only change via PR.
 amiAlias: al2023@latest
 

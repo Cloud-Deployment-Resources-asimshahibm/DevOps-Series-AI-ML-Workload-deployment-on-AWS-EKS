@@ -32,6 +32,8 @@ echo "== Observability"
 check "Prometheus ready"                    kubectl -n monitoring rollout status sts/prometheus-kube-prometheus-stack-prometheus --timeout=10s
 check "Grafana ready"                       kubectl -n monitoring rollout status deploy/kube-prometheus-stack-grafana --timeout=10s
 check "Loki ready"                          kubectl -n monitoring rollout status sts/loki --timeout=10s
+check "OpenCost exporting cost metrics"     kubectl -n opencost rollout status deploy/opencost --timeout=10s
+check "SLO + cost PrometheusRules loaded"   kubectl -n monitoring get prometheusrule slo-error-budgets cost-allocation
 check "Elasticsearch green/yellow"          bash -c "kubectl -n logging get elasticsearch logging -o jsonpath='{.status.health}' | grep -Eq 'green|yellow'"
 
 echo "== Inference"

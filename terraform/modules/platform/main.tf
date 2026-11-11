@@ -37,6 +37,10 @@ resource "kubernetes_storage_class_v1" "gp3" {
     encrypted = "true"
     kmsKeyId  = var.kms_key_arn
     fsType    = "ext4"
+    # cost allocation tags on every dynamically provisioned EBS volume
+    tagSpecification_1 = "Project=${local.project}"
+    tagSpecification_2 = "Environment=${var.environment}"
+    tagSpecification_3 = "ManagedBy=ebs-csi"
   }
 }
 
@@ -116,6 +120,12 @@ resource "helm_release" "aws_lbc" {
     region       = var.region
     vpcId        = var.vpc_id
     replicaCount = 2
+    # cost allocation tags on every ALB/NLB/target group the controller creates
+    defaultTags = {
+      Project     = local.project
+      Environment = var.environment
+      ManagedBy   = "aws-load-balancer-controller"
+    }
     serviceAccount = {
       create      = true
       name        = "aws-load-balancer-controller"
@@ -175,6 +185,8 @@ resource "helm_release" "karpenter" {
 # Argo CD
 # ------------------------------------------------------------------------------
 locals {
+  project = split("-", var.cluster_name)[0]
+
   # Argo CD >= 1.8 does not assess Application health by default; without this
   # sync-waves in the app-of-apps would not wait for child apps to be Healthy.
   app_health_lua = <<-EOT

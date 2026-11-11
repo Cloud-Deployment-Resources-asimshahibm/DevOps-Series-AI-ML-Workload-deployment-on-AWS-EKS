@@ -11,7 +11,7 @@ revision: main
 # Sync waves (lower first; a wave waits until the previous one is Healthy):
 #  -30 node pools, secrets operator     -25 platform-config (namespaces, secrets, DB init)
 #  -20 Prometheus/Grafana (CRDs)        -15 operators: GPU, ECK, KubeRay, Loki
-#  -10 Argo Workflows, Alloy, ELK, dashboards                -5 JupyterHub
+#  -10 Argo Workflows, Alloy, ELK, OpenCost, SLO/cost rules, dashboards   -5 JupyterHub
 #    0 ML workloads: Ray cluster, pipelines, inference
 apps:
   # ------------------------------------------------------------- foundation
@@ -62,6 +62,19 @@ apps:
     wave: -10
     namespace: monitoring
     kustomize: observability/extras     # Grafana dashboards, extra ServiceMonitors, platform alerts
+
+  observability-rules:
+    enabled: true
+    wave: -10
+    namespace: monitoring
+    path: charts/observability-rules     # SLO/SLI error budgets + cost recording rules & alerts
+
+  opencost:
+    enabled: true
+    wave: -10
+    namespace: opencost
+    chart: { repo: https://opencost.github.io/opencost-helm-chart, name: opencost, version: 2.5.33 }
+    values: observability/opencost
 
   eck-operator:
     enabled: true

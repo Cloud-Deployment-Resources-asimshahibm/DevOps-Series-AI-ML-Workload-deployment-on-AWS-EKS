@@ -9,6 +9,7 @@
 #  jupyter-user       jupyterhub:jupyter-user                             data rw, artifacts ro
 #  argo-workflows     argo:argo-workflows-server, argo:argo-workflow      artifacts rw
 #  loki               monitoring:loki                                     loki bucket rw
+#  grafana            monitoring:kube-prometheus-stack-grafana            CloudWatch read (billing, ALB, RDS)
 #  external-secrets   external-secrets:external-secrets                   secretsmanager <name>/* ro
 ################################################################################
 
@@ -64,6 +65,20 @@ locals {
       statements = [
         { actions = ["s3:ListBucket"], resources = [local.loki] },
         { actions = local.s3_rw, resources = ["${local.loki}/*"] },
+      ]
+    }
+    grafana = {
+      # CloudWatch datasource: AWS/Billing EstimatedCharges, ALB, RDS, EFS, NAT metrics
+      sas = ["monitoring:kube-prometheus-stack-grafana"]
+      statements = [
+        {
+          actions = [
+            "cloudwatch:DescribeAlarmsForMetric", "cloudwatch:DescribeAlarmHistory", "cloudwatch:DescribeAlarms",
+            "cloudwatch:ListMetrics", "cloudwatch:GetMetricData", "cloudwatch:GetInsightRuleReport",
+            "ec2:DescribeTags", "ec2:DescribeInstances", "ec2:DescribeRegions", "tag:GetResources",
+          ]
+          resources = ["*"]
+        },
       ]
     }
     external-secrets = {

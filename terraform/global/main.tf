@@ -96,3 +96,46 @@ module "github_oidc" {
   state_bucket_arn   = aws_s3_bucket.tfstate.arn
   ecr_repository_arn = values(module.ecr.repository_arns)
 }
+
+# ------------------------------------------------------------------------------
+# Billing: cost allocation tags + Cost Anomaly Detection (account-wide)
+# ------------------------------------------------------------------------------
+# Activate only after the tags appear in billing data (~24h after first tagged
+# resource), otherwise the API rejects them. Then tag-filtered budgets and
+# Cost Explorer "group by tag" work.
+resource "aws_ce_cost_allocation_tag" "this" {
+  for_each = var.activate_cost_allocation_tags ? toset(["Project", "Environment", "nodepool"]) : toset([])
+  tag_key  = each.key
+  status   = "Active"
+}
+
+resource "aws_ce_anomaly_monitor" "services" {
+  name              = "${var.project}-service-spend"
+  monitor_type      = "DIMENSIONAL"
+  monitor_dimension = "SERVICE"
+}
+
+resource "aws_ce_anomaly_subscription" "services" {
+  count     = length(var.billing_alert_emails) > 0 ? 1 : 0
+  name      = "${var.project}-anomaly-alerts"
+  frequency = "DAILY"
+
+  monitor_arn_list = [aws_ce_anomaly_monitor.services.arn]
+
+  dynamic "subscriber" {
+    for_each = var.billing_alert_emails
+    content {
+      type    = "EMAIL"
+      address = subscriber.value
+    }
+  }
+
+  # alert when an anomaly's impact is >= $X (absolute)
+  threshold_expression {
+    dimension {
+      key           = "ANOMALY_TOTAL_IMPACT_ABSOLUTE"
+      match_options = ["GREATER_THAN_OR_EQUAL"]
+      values        = [tostring(var.anomaly_threshold_usd)]
+    }
+  }
+}

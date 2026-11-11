@@ -16,6 +16,7 @@ declare -A PF=(
   [ray]="ray svc/ml-ray-head-svc 8265:8265"
   [kibana]="logging svc/logging-kb-http 5601:5601"
   [inference]="ml-serving svc/ml-inference 8081:80"
+  [opencost]="opencost svc/opencost 9091:9090"
 )
 
 creds() {
@@ -28,6 +29,7 @@ creds() {
   echo "Ray          http://localhost:8265"
   echo "Prometheus   http://localhost:9090   Alertmanager http://localhost:9093"
   echo "Inference    http://localhost:8081/docs"
+  echo "OpenCost     http://localhost:9091   (cost allocation UI)"
   echo "---------------------------------------------------------------"
 }
 

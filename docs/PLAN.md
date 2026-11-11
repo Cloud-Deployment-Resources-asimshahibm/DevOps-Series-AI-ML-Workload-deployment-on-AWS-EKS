@@ -24,6 +24,8 @@ change to infrastructure, platform components and models flows through Git.
 | Identity | **IAM / IRSA / EKS Pod Identity**, EKS access entries | Least-privilege per workload |
 | Encryption | **KMS CMK** | EKS secrets, EBS, EFS, S3, RDS, Secrets Manager |
 | Metrics & alerting | **Prometheus** + **Alertmanager** + **Grafana** | SLOs, GPU/Karpenter/pipeline alerts, dashboards |
+| Cost & billing | **OpenCost**, CloudWatch `AWS/Billing`, **AWS Budgets**, **Cost Anomaly Detection** | Real-time allocation per namespace/GPU + the real bill + guardrails |
+| SLOs | `observability-rules` chart (multi-window multi-burn-rate) | Error budgets drive release decisions |
 | Logs | **Loki** (+ Alloy) and **ELK** on ECK (Filebeat → Logstash → ES → Kibana) | Loki for cheap ops logs in Grafana; ELK for full-text search/audit |
 | Networking & security | VPC (3 AZ), NAT, VPC endpoints, ALB + ACM (+WAF), SGs, flow logs | Private nodes, private AWS API access |
 
@@ -100,7 +102,11 @@ promote-prod.yml → PR copying tags to values-prod.yaml → review + merge → 
 | Container logs (platform + ML namespaces) | Filebeat → Logstash | Elasticsearch | Kibana / Grafana ES datasource |
 | Alerts | PrometheusRules | Alertmanager | Slack/PagerDuty receiver (configure) |
 
-SLOs shipped as alerts: 5xx ratio < 5 % (critical), p95 latency < 500 ms (warning), model loaded on every replica (critical), confidence drift (info), GPU XID errors, GPU idle-but-allocated, Karpenter launch failures, Argo CD degraded/out-of-sync, ExternalSecret sync failures, training pipeline failures.
+**SLOs and error budgets** (details: [OBSERVABILITY.md](OBSERVABILITY.md)): inference availability 99.5 %, inference latency 99 % ≤ 500 ms, model freshness 99 %, training pipeline success 95 %, JupyterHub spawn success 98 %. Each has burn-rate alerts (14.4× / 6× page, 3× / 1× ticket), budget-low / exhausted alerts and an error-budget policy that gates promotions.
+
+**Cost** is measured three ways: OpenCost allocation (namespace, NodePool, Spot vs On-Demand, GPU, idle, cost per 1k predictions / per training run), the AWS bill (CloudWatch EstimatedCharges by service), and AWS Budgets + Anomaly Detection e-mails. Dashboards: *Cost & Billing*, *Performance*, *SLO / Error Budget*.
+
+Other alerts shipped: 5xx ratio < 5 % (critical), p95 latency < 500 ms (warning), model loaded on every replica (critical), confidence drift (info), GPU XID errors, GPU idle-but-allocated, Karpenter launch failures, Argo CD degraded/out-of-sync, ExternalSecret sync failures, training pipeline failures.
 
 ## 6. Milestones
 
@@ -111,7 +117,7 @@ SLOs shipped as alerts: 5xx ratio < 5 % (critical), p95 latency < 500 ms (warnin
 | M2 | dev stack | `terraform apply` green; Argo CD shows all apps Synced/Healthy | 1 day |
 | M3 | CI/CD | first `build-and-deploy` run pushes images and dev picks them up | 0.5 day |
 | M4 | ML lifecycle | training pipeline (with Ray Tune) promotes a model; `/v1/predict` answers via ALB | 0.5 day |
-| M5 | Observability | dashboards populated, test alert reaches receiver, logs searchable in Loki + Kibana | 0.5 day |
+| M5 | Observability | dashboards populated (incl. Cost & Billing, Performance, SLO), test alert reaches receiver, logs searchable in Loki + Kibana, budgets created | 0.5 day |
 | M6 | Users | JupyterHub GitHub login, CPU + GPU notebook launch, Ray from notebook | 0.5 day |
 | M7 | prod | prod stack applied with approval, promote PR merged, smoke test green | 1 day |
 | M8 | Hardening | DNS + ACM + WAF, API CIDR lock-down, Alertmanager receivers, AMI pin, backups tested | 1–2 days |
@@ -138,5 +144,5 @@ SLOs shipped as alerts: 5xx ratio < 5 % (critical), p95 latency < 500 ms (warnin
 | Spot interruptions in dev | SQS interruption queue → Karpenter drains gracefully; PDBs; inference keeps ≥ 1 replica |
 | Chart upgrades breaking CRDs | pinned versions, ServerSideApply, upgrade in dev first via PR |
 | Model/library skew | identical sklearn/joblib pins in training + inference; versioned metadata |
-| Cost runaway | NodePool limits, JupyterHub culling, GPU consolidation, GPU-idle alert |
+| Cost runaway | NodePool limits, JupyterHub culling, GPU consolidation, GPU-idle + unallocated-GPU alerts, projection-over-budget alert, AWS Budgets + Anomaly Detection |
 | Secrets leakage | ESO + Secrets Manager only; gitleaks; no secrets in values files |

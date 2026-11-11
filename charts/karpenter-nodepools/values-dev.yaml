@@ -2,6 +2,10 @@ clusterName: aiml-dev
 nodeRole: aiml-dev-karpenter-node
 kmsKeyAlias: alias/aiml-dev-platform
 
+costTags:
+  Project: aiml
+  Environment: dev
+
 cpu:
   capacityTypes: ["spot", "on-demand"]   # Spot first in dev
   limits:

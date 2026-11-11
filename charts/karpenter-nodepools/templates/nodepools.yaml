@@ -32,7 +32,10 @@ spec:
         deleteOnTermination: true
   tags:
     karpenter.sh/discovery: {{ $cluster }}
-    nodepool: {{ $name }}
+    nodepool: {{ $name }}           # cost allocation: GPU vs CPU spend in Cost Explorer
+    {{- range $k, $v := $.Values.costTags }}
+    {{ $k }}: {{ $v | quote }}
+    {{- end }}
 {{- end }}
 ---
 apiVersion: karpenter.sh/v1

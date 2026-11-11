@@ -30,3 +30,10 @@ rds = {
 }
 
 argocd_ha = true
+
+# Billing guardrails (AWS Budgets). Add recipients, e.g. ["platform-team@example.com"]
+budgets = {
+  monthly_total_usd   = 6000
+  monthly_compute_usd = 4500
+  alert_emails        = []
+}

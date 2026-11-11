@@ -58,6 +58,10 @@ kubectl get events -A --sort-by=.lastTimestamp | tail -30
 | Loki `AccessDenied` on S3 | SA `loki` annotation = `aiml-<env>-loki` role |
 | Elasticsearch `yellow` | normal for 1-node dev (replicas 0 via template only for new indices) |
 | Kibana empty | create data view `logs-k8s-*`; check Logstash: `kubectl -n logging logs sts/logging-ls` |
+| SLO panels "No data" | no traffic / pipeline runs in the window yet (ratio is undefined with 0 events) — generate load; check `slo:sli_error:ratio_rate` in Prometheus |
+| Cost dashboard empty | `kubectl -n opencost logs deploy/opencost`; Prometheus target `opencost` UP; `node_total_hourly_cost` present; NodePool panels need KSM `metricLabelsAllowlist` (set in kube-prometheus-stack values) |
+| AWS bill panels empty | enable *Receive CloudWatch billing alerts* in Billing preferences; Grafana SA annotated with `aiml-<env>-grafana` role; region must be us-east-1 |
+| Budget shows $0 for the env | `Environment` cost allocation tag not activated yet (`activate_cost_allocation_tags`) |
 | Grafana ES datasource 401 | `es-grafana-user` ExternalSecret synced? ES file realm user `grafana` exists: `kubectl -n logging get secret es-grafana-user` |
 
 ## ML

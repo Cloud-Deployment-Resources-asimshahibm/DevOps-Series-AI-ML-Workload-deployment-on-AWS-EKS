@@ -20,4 +20,7 @@ alertmanager:
     replicas: 3
 
 grafana:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::__AWS_ACCOUNT_ID__:role/aiml-prod-grafana
   replicas: 1   # Grafana HA needs a shared DB; point grafana.ini [database] at RDS to scale out

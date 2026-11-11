@@ -42,3 +42,7 @@ output "irsa_role_arns" {
   description = "Must match the serviceAccount annotations in the GitOps values (scripts/configure.sh renders them)."
   value       = module.workload_identity.role_arns
 }
+
+output "budgets" {
+  value = module.cost_guardrails.budget_names
+}

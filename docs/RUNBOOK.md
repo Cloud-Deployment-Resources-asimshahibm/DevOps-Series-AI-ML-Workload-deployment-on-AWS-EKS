@@ -418,11 +418,25 @@ make smoke ENV=dev
    {namespace="ml-serving"} | json | status >= 400
    sum by (level) (count_over_time({namespace=~"ml-.*"} | json [5m]))
    ```
-5. **ELK**: Kibana (http://localhost:5601, user `elastic`, password from `make access`) › Stack Management › Data Views › create `logs-k8s-*` (time field `@timestamp`) › Discover:
+5. **SLO / error budgets**: Grafana › SRE › *ML Platform — SLO / SLI & Error Budgets*. All 5 SLOs listed with objective and budget. They read "No data" until there is traffic/runs — generate some with the Phase 8 load test and Phase 7 pipeline. Check the rules are loaded:
+   ```bash
+   kubectl -n monitoring get prometheusrule slo-error-budgets cost-allocation
+   # Prometheus UI: query  slo:error_budget_remaining:ratio  and  slo:burn_rate{window="1h"}
+   ```
+   Fire a burn-rate alert on purpose (dev): break the model store access for 10 min, e.g. pin a missing version
+   `model.version: does-not-exist` in `charts/ml-inference/values-dev.yaml` → push → `SLOErrorBudgetBurn{slo="ml-model-freshness"}` goes pending. Revert afterwards.
+6. **Performance**: Grafana › ML Platform › *ML Platform — Performance* — during the Phase 8 load test watch p95/p99, Apdex, CPU vs request (HPA target 65 %), throttling, HPA replicas, Karpenter pod startup time and bin-packing.
+7. **Cost & billing**:
+   - OpenCost: `kubectl -n opencost port-forward svc/opencost 9091:9090` → http://localhost:9091 (allocation UI); metrics after ~10 min: query `node_total_hourly_cost`.
+   - Grafana › FinOps › *ML Platform — Cost & Billing*: run-rate, projection vs budget, namespace table, NodePool, Spot vs On-Demand, GPU unallocated, cost per 1k predictions.
+   - AWS bill panels need **Billing preferences › Receive CloudWatch billing alerts** enabled once per account (data appears within ~6 h).
+   - Budgets: `aws budgets describe-budgets --account-id <acct> --query 'Budgets[].BudgetName'` → `aiml-dev-monthly-total`, `aiml-dev-monthly-ec2-compute`. Add recipients in `terraform/envs/dev/terraform.tfvars › budgets.alert_emails`.
+   - ~24 h after the first env apply: set `activate_cost_allocation_tags = true` (+ `billing_alert_emails`) in `terraform/global/terraform.tfvars` and re-run `make global` so tag-filtered budgets and Cost Explorer "group by Environment / nodepool" work.
+8. **ELK**: Kibana (http://localhost:5601, user `elastic`, password from `make access`) › Stack Management › Data Views › create `logs-k8s-*` (time field `@timestamp`) › Discover:
    `k8s.namespace : "ml-serving" and app.msg : "model loaded"`.
    ILM: Stack Management › Index Lifecycle Policies › `logs-k8s` (7 d in dev).
 
-✅ **Exit criteria:** dashboards populated, all targets UP, test alert visible in Alertmanager, logs searchable in both Loki and Kibana.
+✅ **Exit criteria:** dashboards populated (Inference, Platform, Performance, SLO, Cost & Billing), all targets UP incl. `opencost`, test alert visible in Alertmanager, logs searchable in both Loki and Kibana, budgets exist.
 
 ---
 
@@ -507,7 +521,8 @@ make smoke ENV=dev
 | **Grafana admin password** | `aws secretsmanager get-secret-value --secret-id aiml-<env>/grafana/admin` |
 | **Backups** | RDS automated backups (3 d dev / 14 d prod) + final snapshot; EFS AWS Backup policy on; S3 versioning; Git is the backup for everything else |
 | **Restore RDS** | restore snapshot to new instance → change `postgres_address` input (ExternalName) via Terraform → restart hub/argo-server |
-| **Cost review** | Grafana *ML Platform* (GPU idle panel), `kubectl get nodeclaims`, AWS Cost Explorer by tag `Environment` |
+| **Cost review (weekly)** | Grafana *Cost & Billing*: top namespaces, idle ratio, unallocated GPU, Spot share, cost per 1k predictions trend; AWS Cost Explorer grouped by tag `Environment` / `nodepool`; adjust `cost.monthlyBudgetUSD` + Terraform `budgets` together |
+| **SLO review (weekly)** | Grafana *SLO / Error Budgets*: budget remaining per SLO; apply the [error budget policy](OBSERVABILITY.md#error-budget-policy); tune objectives in `charts/observability-rules/values.yaml` via PR |
 
 ---
 
@@ -546,6 +561,20 @@ cd terraform/global && terraform destroy     # remove prevent_destroy first if y
 
 1. `kubectl describe nodeclaim <name>` / `kubectl -n kube-system logs deploy/karpenter | grep -i error`.
 2. `InsufficientInstanceCapacity` → add families/sizes to the NodePool; `VcpuLimitExceeded` → quota increase; NodePool `limits` reached → raise limits.
+
+### SLOErrorBudgetBurn (critical = page, warning = ticket)
+
+1. Open the SLO dashboard (`dashboard` annotation) for the `slo` label; check which windows are burning.
+2. Correlate with *Performance* (latency, errors, saturation) and recent changes (Argo CD history, `latest.json`).
+3. Mitigate first: model rollback / `git revert` / scale out (`autoscaling.maxReplicas`). Then root-cause.
+4. If the budget is exhausted, apply the [error budget policy](OBSERVABILITY.md#error-budget-policy) (freeze promotions for that service).
+
+### CostMonthlyProjectionOverBudget / CostHourlySpike / CostUnallocatedGPU
+
+1. Grafana *Cost & Billing* → which namespace / NodePool / instance type moved?
+2. GPU: `kubectl get nodeclaims -l karpenter.sh/nodepool=gpu`; idle notebook servers (`kubectl -n jupyterhub get pods`), finished RayJobs still holding workers (`kubectl -n ray get pods`).
+3. Idle ratio high: compare requests vs usage on *Performance* (CPU vs request) and right-size requests.
+4. Legit growth → raise `cost.monthlyBudgetUSD` and Terraform `budgets` in the same PR.
 
 ### GPUXidErrors
 

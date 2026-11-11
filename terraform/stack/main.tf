@@ -372,3 +372,16 @@ module "platform" {
 
   depends_on = [module.eks, module.karpenter]
 }
+
+# ------------------------------------------------------------------------------
+# Billing guardrails (AWS Budgets on the Environment tag)
+# ------------------------------------------------------------------------------
+module "cost_guardrails" {
+  source = "../modules/cost-guardrails"
+
+  name               = local.name
+  environment        = var.environment
+  monthly_budget_usd = var.budgets.monthly_total_usd
+  compute_budget_usd = var.budgets.monthly_compute_usd
+  alert_emails       = var.budgets.alert_emails
+}

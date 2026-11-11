@@ -105,3 +105,18 @@ variable "bootstrap_gitops" {
   type    = bool
   default = true
 }
+
+# ----------------------------- billing -----------------------------
+variable "budgets" {
+  description = "Monthly AWS Budgets for this environment (USD). Alerts at 80%/100% actual and 100% forecast."
+  type = object({
+    monthly_total_usd   = number
+    monthly_compute_usd = number
+    alert_emails        = list(string)
+  })
+  default = {
+    monthly_total_usd   = 800
+    monthly_compute_usd = 500
+    alert_emails        = []
+  }
+}

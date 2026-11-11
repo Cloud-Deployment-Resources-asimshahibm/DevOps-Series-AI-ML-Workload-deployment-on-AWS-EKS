@@ -2,3 +2,8 @@ region      = "us-east-1"
 project     = "aiml"
 github_org  = "Cloud-Deployment-Resources-asimshahibm"
 github_repo = "devops-series-ai-ml-workload-deployment"
+
+# Billing guardrails
+billing_alert_emails          = [] # e.g. ["platform-team@example.com"]
+anomaly_threshold_usd         = 50
+activate_cost_allocation_tags = false # flip to true ~24h after the first env apply

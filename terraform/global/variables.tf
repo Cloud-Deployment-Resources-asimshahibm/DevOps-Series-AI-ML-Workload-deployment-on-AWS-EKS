@@ -31,3 +31,20 @@ variable "environments" {
   type        = list(string)
   default     = ["dev", "prod"]
 }
+
+variable "activate_cost_allocation_tags" {
+  description = "Activate Project/Environment/nodepool cost allocation tags (set true ~24h after first apply of an env)."
+  type        = bool
+  default     = false
+}
+
+variable "billing_alert_emails" {
+  description = "Recipients of Cost Anomaly Detection alerts (and default for budgets)."
+  type        = list(string)
+  default     = []
+}
+
+variable "anomaly_threshold_usd" {
+  type    = number
+  default = 50
+}
