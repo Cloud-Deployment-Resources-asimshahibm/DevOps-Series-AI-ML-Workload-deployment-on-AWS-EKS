@@ -1,0 +1,4 @@
+region      = "us-east-1"
+project     = "aiml"
+github_org  = "Cloud-Deployment-Resources-asimshahibm"
+github_repo = "devops-series-ai-ml-workload-deployment"
