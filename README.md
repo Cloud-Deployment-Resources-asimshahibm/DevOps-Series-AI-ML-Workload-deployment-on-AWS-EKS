@@ -4,13 +4,30 @@
 
 > This repository implements the **AWS-EKS** platform. The Azure-AKS variant of the same platform is the next part of the series.
 
-A production-style, end-to-end platform for the ML lifecycle on AWS — model
-development in notebooks, orchestrated training pipelines, distributed tuning
-on Ray, GPU/CPU autoscaling with Karpenter, GitOps delivery, and full
-observability. Everything (infrastructure, platform, models' serving config)
-is declared in this repository.
+## Description
+
+This project contains an **end-to-end AI/ML workload deployment on an AWS EKS containerized environment**. It uses **Kubernetes and Helm charts** for packaging and running the workloads, **GitHub Actions** for CI/CD, and **Argo CD** for GitOps continuous delivery. It also has **full observability coverage with Prometheus and Grafana**: metrics, alerting, performance dashboards, SLO/SLI error budgets and cost/billing dashboards. Loki and the ELK stack add centralized logging.
+
+It covers the whole ML lifecycle:
+
+- **Develop** in multi-user JupyterHub notebooks (CPU and GPU profiles).
+- **Train and tune** with Argo Workflows pipelines and distributed Ray Tune on KubeRay.
+- **Gate and promote** models through an S3 model registry.
+- **Serve** them through a FastAPI inference service behind an Application Load Balancer.
+
+Karpenter provisions CPU and GPU nodes just in time. **Terraform** declares all infrastructure, and Git drives every change.
+
+## Architecture
+
+**Pictorial view (IT/service icons)**
+
+![Pictorial architecture](docs/architecture-pictorial.png)
+
+**Detailed view**
 
 ![Architecture](docs/architecture.png)
+
+## Documentation
 
 | Document | What's in it |
 |---|---|
@@ -18,7 +35,8 @@ is declared in this repository.
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | **Step-by-step deployment runbook** (Phase 0 → 13) + alert playbooks |
 | [docs/OBSERVABILITY.md](docs/OBSERVABILITY.md) | Dashboards, **SLOs/SLIs + error-budget policy**, burn-rate alerting, **cost & billing** model |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Symptom → cause → fix tables |
-| [docs/architecture.svg](docs/architecture.svg) | Editable architecture diagram |
+| [docs/architecture.svg](docs/architecture.svg) | Editable detailed architecture diagram |
+| [docs/architecture-pictorial.png](docs/architecture-pictorial.png) | Pictorial diagram with AWS / Kubernetes / tool icons. Source: [docs/diagrams/architecture_pictorial.py](docs/diagrams/architecture_pictorial.py) (`python docs/diagrams/architecture_pictorial.py` regenerates it) |
 
 ## What gets deployed
 

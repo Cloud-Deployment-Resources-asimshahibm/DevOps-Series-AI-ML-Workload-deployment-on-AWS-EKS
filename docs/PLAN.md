@@ -31,6 +31,10 @@ change to infrastructure, platform components and models flows through Git.
 
 ## 2. Architecture
 
+![pictorial architecture](architecture-pictorial.png)
+
+Detailed view:
+
 ![architecture](architecture.png)
 
 **Layering** (each layer only depends on the one below it):
