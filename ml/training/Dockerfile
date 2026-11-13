@@ -20,7 +20,7 @@ USER 1000
 
 ARG GIT_SHA=local
 ENV GIT_SHA=${GIT_SHA}
-LABEL org.opencontainers.image.source="https://github.com/Cloud-Deployment-Resources-asimshahibm/devops-series-ai-ml-workload-deployment" \
+LABEL org.opencontainers.image.source="https://github.com/Cloud-Deployment-Resources-asimshahibm/DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS" \
       org.opencontainers.image.revision="${GIT_SHA}"
 
 ENTRYPOINT ["python", "-m"]

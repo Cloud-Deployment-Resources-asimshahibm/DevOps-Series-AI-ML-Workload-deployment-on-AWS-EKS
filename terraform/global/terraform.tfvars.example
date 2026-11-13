@@ -1,7 +1,7 @@
 region      = "us-east-1"
 project     = "aiml"
 github_org  = "Cloud-Deployment-Resources-asimshahibm"
-github_repo = "devops-series-ai-ml-workload-deployment"
+github_repo = "DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS"
 
 # Billing guardrails
 billing_alert_emails          = [] # e.g. ["platform-team@example.com"]

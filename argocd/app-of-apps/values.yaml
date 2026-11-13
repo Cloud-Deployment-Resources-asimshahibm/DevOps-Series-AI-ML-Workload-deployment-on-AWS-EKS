@@ -1,6 +1,6 @@
 env: dev
 project: ml-platform
-repoURL: https://github.com/Cloud-Deployment-Resources-asimshahibm/devops-series-ai-ml-workload-deployment.git
+repoURL: https://github.com/Cloud-Deployment-Resources-asimshahibm/DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS.git
 revision: main
 
 # Every component of the platform. Three kinds:

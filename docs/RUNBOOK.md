@@ -63,7 +63,7 @@ macOS: `brew install terraform awscli kubectl helm jq yq gh argo`.
 
 ### 0.3 GitHub
 
-- Repository: `Cloud-Deployment-Resources-asimshahibm/devops-series-ai-ml-workload-deployment`.
+- Repository: `Cloud-Deployment-Resources-asimshahibm/DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS`.
 - Argo CD pulls this repo over HTTPS. If you make it **private**, add a read-only deploy key or token in Argo CD (`argocd repo add ...`) after Phase 4.
 
 ✅ **Exit criteria:** tools installed, `aws sts get-caller-identity` works, quota requests submitted.
@@ -73,8 +73,8 @@ macOS: `brew install terraform awscli kubectl helm jq yq gh argo`.
 ## Phase 1 — Configure the repository
 
 ```bash
-git clone https://github.com/Cloud-Deployment-Resources-asimshahibm/devops-series-ai-ml-workload-deployment.git
-cd devops-series-ai-ml-workload-deployment
+git clone https://github.com/Cloud-Deployment-Resources-asimshahibm/DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS.git
+cd DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS
 make configure            # = scripts/configure.sh
 ```
 

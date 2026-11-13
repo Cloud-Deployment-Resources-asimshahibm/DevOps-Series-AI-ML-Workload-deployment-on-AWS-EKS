@@ -1,7 +1,7 @@
 project         = "aiml"
 environment     = "dev"
 region          = "us-east-1"
-gitops_repo_url = "https://github.com/Cloud-Deployment-Resources-asimshahibm/devops-series-ai-ml-workload-deployment.git"
+gitops_repo_url = "https://github.com/Cloud-Deployment-Resources-asimshahibm/DevOps-Series-AI-ML-Workload-deployment-on-AWSEKS.git"
 gitops_revision = "main"
 
 vpc_cidr           = "10.10.0.0/16"
