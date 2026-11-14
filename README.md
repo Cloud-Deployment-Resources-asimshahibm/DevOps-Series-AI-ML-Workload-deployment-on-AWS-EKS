@@ -1,4 +1,4 @@
-# DevOps-Series (AI/ML Workload Deployment on Kubernetes — AWS-EKS and Azure-AKS Platforms)
+# DevOps-Series (AI/ML Workload Deployment on Kubernetes — AWS-EKS Platforms)
 
 **Terraform · Amazon EKS · Karpenter (CPU + GPU) · GitHub Actions · Argo CD + Helm · JupyterHub · Argo Workflows · Ray/KubeRay · Prometheus · Grafana · Loki · ELK · OpenCost · SLO error budgets**
 
